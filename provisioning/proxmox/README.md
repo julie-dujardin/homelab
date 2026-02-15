@@ -7,10 +7,22 @@ Boot menu: F11
 
     a. Use LUKS - ZFS native encryption causes issues in proxmox
 
-    b. Boot pool: mirror
+    b. ZFS pools: mirror
 
-    c.  ```bash
-        apt install openssh-server git zsh curl wget htop
-        ```
+    c. After first reboot:
+
+        sudo apt install openssh-server git zsh curl wget htop tree nfs-kernel-server
 
 2. [Install Proxmox on Debian](https://pve.proxmox.com/wiki/Install_Proxmox_VE_on_Debian_13_Trixie)
+
+3. Install a debian VM
+
+    a. Run `vm-cloud-init.sh` as root - edit ram, cpu, storage size.
+
+    b. Install necessary software:
+
+        sudo apt install git htop zsh tree qemu-guest-agent nfs-common
+
+4. Install:
+    - [oh-my-zsh](https://ohmyz.sh/#install)
+    - [docker](https://docs.docker.com/engine/install/debian/)
