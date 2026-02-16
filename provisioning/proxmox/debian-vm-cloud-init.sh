@@ -7,7 +7,7 @@ qm create $VMID --name debian13 --memory 2048 --cores 2 --net0 virtio,bridge=vmb
 
 # Import the cloud-init disk to storage - local storage here
 qm importdisk $VMID debian-13-genericcloud-amd64.qcow2 local
-qm set $VMID --scsihw virtio-scsi-pci --scsi0 local:${VMID}/vm-${VMID}-disk-0.raw,discard=on
+qm set $VMID --scsihw virtio-scsi-pci --scsi0 local:${VMID}/vm-${VMID}-disk-0.raw,discard=on,ssd=1
 
 # Set boot order and add the cloud-init drive
 qm set $VMID --boot order=scsi0
@@ -16,6 +16,7 @@ qm set $VMID --ide2 local:cloudinit
 # Enable serial console + QEMU guest agent
 qm set $VMID --serial0 socket --vga serial0
 qm set $VMID --agent enabled=1
+qm set $VMID -cpu host  # Pass through all CPU flags
 
 # Configure cloud-init
 qm set $VMID --ciuser $USER
