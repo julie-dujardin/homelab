@@ -1,0 +1,36 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - VPN_SERVICE_PROVIDER=mullvad
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=$WIREGUARD_PRIVATE_KEY
+      - WIREGUARD_ADDRESSES=10.74.106.130/32
+      - SERVER_CITIES=Paris  # optional, pick your location
+    ports:
+      - 3004:3000
+      - 6881:6881
+      - 5000:5000
+    restart: unless-stopped
+
+  rtorrent:
+    image: jesec/rtorrent-flood:latest
+    container_name: rtorrent
+    network_mode: "service:gluetun"
+    user: 1000:998
+    depends_on:
+      - gluetun
+    volumes:
+      - /var/lib/ilus/rtorrent:/config
+      - /mnt/storage/temp:/storage/temp/
+    environment:
+      - HOME=/config
+    restart: unless-stopped
+
+    command:
+      - --auth
+      - none
+      - --rtsocket
+      - /config/.local/share/rtorrent/rtorrent.sock

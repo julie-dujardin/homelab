@@ -1,0 +1,12 @@
+version: "2"
+services:
+  watchtower:
+    image: nickfedor/watchtower
+    container_name: watchtower
+    hostname: watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_NOTIFICATION_URL=pushover://shoutrrr:${PUSHOVER_TOKEN}@${PUSHOVER_USER_KEY}/?priority=-2
+      - WATCHTOWER_NOTIFICATIONS_HOSTNAME=debian0
+    restart: unless-stopped
