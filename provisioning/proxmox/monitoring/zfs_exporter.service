@@ -1,0 +1,21 @@
+[Unit]
+Description=Prometheus ZFS Exporter
+Documentation=https://github.com/pdf/zfs_exporter
+Wants=network-online.target
+After=network-online.target
+After=zfs-mount.service
+
+[Service]
+# Needs root for ZFS access
+User=root
+Group=root
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/zfs_exporter \
+    --web.listen-address=:9134 \
+    --deadline=15s \
+    --collector.dataset-snapshot
+
+[Install]
+WantedBy=multi-user.target
