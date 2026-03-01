@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--collector.cpu.info'
+      - '--collector.thermal_zone'
+      - '--collector.powersupplyclass'
+    network_mode: host
+    pid: host
+    volumes:
+      - '/:/host:ro,rslave'
+    restart: unless-stopped
+
+  smart_exporter:
+    image: prometheuscommunity/smartctl-exporter:master
+    container_name: smart_exporter
+    privileged: true
+    user: root
+    ports:
+      - "9633:9633"
+    restart: unless-stopped
+
+  dcgm_exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:4.5.2-4.8.1-distroless
+    container_name: dcgm_exporter
+    cap_add:
+      - SYS_ADMIN
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    ports:
+      - "9400:9400"
+    restart: unless-stopped
