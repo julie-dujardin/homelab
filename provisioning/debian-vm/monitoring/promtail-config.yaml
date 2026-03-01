@@ -1,0 +1,92 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+    relabel_configs:
+      # Container name (strip leading slash)
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/(.+)'
+        target_label: container
+
+      # Compose project name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_project']
+        target_label: compose_project
+
+      # Compose service name
+      - source_labels: ['__meta_docker_container_label_com_docker_compose_service']
+        target_label: compose_service
+
+      # Image name
+      - source_labels: ['__meta_docker_container_image']
+        target_label: image
+
+    pipeline_stages:
+      # Try JSON parsing first (for apps that output structured logs)
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            message: message
+          drop_malformed: false
+
+      # Regex patterns run on all logs - will extract level if JSON didn't
+      # Pattern: [ERROR], [WARN], [INFO], [DEBUG], [INF], etc.
+      - regex:
+          expression: '(?i)\[(?P<extracted_level>debug|dbg|trace|inf|info|warn|wrn|warning|error|err|critical|crit|fatal|panic)\]'
+
+      # Pattern: level=error, level="error"
+      - regex:
+          expression: '(?i)level[=:]"?(?P<extracted_level>debug|dbg|trace|inf|info|warn|wrn|warning|error|err|critical|crit|fatal|panic)"?'
+
+      # Pattern: ERROR:, DEBUG ::, INF, etc. (standalone or after timestamp/whitespace)
+      - regex:
+          expression: '(?i)(?:^|[\s\-])(?P<extracted_level>DEBUG|DBG|TRACE|INF|INFO|WARN|WRN|WARNING|ERROR|ERR|CRITICAL|CRIT|FATAL|PANIC)[\s:\]\|]'
+
+      # Use extracted_level if level wasn't set by JSON
+      - template:
+          source: level
+          template: '{{ if .level }}{{ .level }}{{ else }}{{ .extracted_level }}{{ end }}'
+
+      # Normalize to standard levels (lowercase)
+      - template:
+          source: level
+          template: >-
+            {{ $l := .Value | ToLower }}
+            {{- if or (eq $l "inf") }}info
+            {{- else if or (eq $l "dbg") (eq $l "trace") }}debug
+            {{- else if or (eq $l "err") }}error
+            {{- else if or (eq $l "wrn") (eq $l "warning") }}warn
+            {{- else if or (eq $l "crit") }}critical
+            {{- else }}{{ $l }}
+            {{- end }}
+
+      # Set the label
+      - labels:
+          level:
+
+      # Timestamp parsing for JSON logs
+      - timestamp:
+          source: time
+          format: RFC3339
+          fallback_formats:
+            - RFC3339Nano
+            - '2006-01-02T15:04:05.000Z'
+            - '2006-01-02 15:04:05'
+          action_on_failure: skip
+
+      # Use message or msg from JSON if available
+      - output:
+          source: message
+      - output:
+          source: msg
