@@ -1,0 +1,19 @@
+[Unit]
+Description=Prometheus Smartctl Exporter
+Documentation=https://github.com/prometheus-community/smartctl_exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+# Needs root for smartctl disk access
+User=root
+Group=root
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/smartctl_exporter \
+    --web.listen-address=:9633 \
+    --smartctl.interval=120s
+
+[Install]
+WantedBy=multi-user.target
