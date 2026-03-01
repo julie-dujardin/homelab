@@ -27,7 +27,7 @@ services:
     environment:
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
       - GF_SERVER_ROOT_URL=https://grafana.ilus.pw
-      
+
       - GF_SMTP_ENABLED=true
       - GF_SMTP_HOST=smtp.resend.com:587
       - GF_SMTP_STARTTLS_POLICY=MandatoryStartTLS

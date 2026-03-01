@@ -15,7 +15,7 @@ services:
     restart: unless-stopped
     networks:
       - media
- 
+
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:develop
     container_name: prowlarr
@@ -120,7 +120,7 @@ services:
         tmpfs:
           size: 2G
     restart: unless-stopped
-    
+
   tautulli:
     container_name: tautulli
     hostname: tautulli
@@ -137,6 +137,6 @@ services:
     networks:
       - media
     restart: unless-stopped
-    
+
 networks:
   media:
