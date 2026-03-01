@@ -1,3 +1,5 @@
+#!/bin/bashs
+
 # Download the genericcloud image
 wget https://cloud.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
 
@@ -19,7 +21,7 @@ qm set $VMID --agent enabled=1
 qm set $VMID -cpu host  # Pass through all CPU flags
 
 # Configure cloud-init
-qm set $VMID --ciuser $USER
+qm set $VMID --ciuser "$USER"
 qm set $VMID --sshkeys ~/.ssh/authorized_keys
 qm set $VMID --ipconfig0 ip=dhcp
 
