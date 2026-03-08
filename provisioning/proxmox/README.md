@@ -12,6 +12,7 @@ Boot menu: F11
     c. After first reboot:
 
         sudo apt install openssh-server git zsh curl wget htop tree \
+            prometheus-node-exporter \
             nfs-kernel-server \
             nut usbutils
 

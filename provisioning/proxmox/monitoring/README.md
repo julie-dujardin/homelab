@@ -13,6 +13,12 @@ Systemd service units for Prometheus exporters running on Proxmox host.
 
 ## Installation
 
+Create the shared service user:
+
+```bash
+useradd --system --no-create-home --shell /usr/sbin/nologin node_exporter
+```
+
 Download the binary for each exporter from the releases page above, place it in `/usr/local/bin/`, and install the service unit:
 
 ```bash
@@ -20,3 +26,5 @@ cp <exporter>.service /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now <exporter>
 ```
+
+node_exporter can be installed with package manager.
