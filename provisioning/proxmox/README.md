@@ -25,6 +25,7 @@ Boot menu: F11
 
         sudo apt install git htop zsh tree qemu-guest-agent nfs-common
 
-4. Install:
+4. Install & Setup:
     - [oh-my-zsh](https://ohmyz.sh/#install)
     - [docker](https://docs.docker.com/engine/install/debian/)
+    - [nut](https://wiki.debian.org/nut)
