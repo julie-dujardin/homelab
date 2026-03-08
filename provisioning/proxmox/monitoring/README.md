@@ -9,6 +9,7 @@ Systemd service units for Prometheus exporters running on Proxmox host.
 | node_exporter | 9100 | https://github.com/prometheus/node_exporter/releases |
 | smartctl_exporter | 9633 | https://github.com/prometheus-community/smartctl_exporter/releases |
 | zfs_exporter | 9134 | https://github.com/pdf/zfs_exporter/releases |
+| nut_exporter | 9199 | https://github.com/DRuggeri/nut_exporter/releases |
 
 ## Installation
 

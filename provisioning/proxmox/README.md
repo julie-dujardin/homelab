@@ -11,7 +11,9 @@ Boot menu: F11
 
     c. After first reboot:
 
-        sudo apt install openssh-server git zsh curl wget htop tree nfs-kernel-server
+        sudo apt install openssh-server git zsh curl wget htop tree \
+            nfs-kernel-server \
+            nut usbutils
 
 2. [Install Proxmox on Debian](https://pve.proxmox.com/wiki/Install_Proxmox_VE_on_Debian_13_Trixie)
 

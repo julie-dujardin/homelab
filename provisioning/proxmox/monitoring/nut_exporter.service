@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus NUT Exporter
+Documentation=https://github.com/DRuggeri/nut_exporter
+Wants=network-online.target nut-server.service
+After=network-online.target nut-server.service
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+Restart=on-failure
+RestartSec=5s
+ExecStart=/usr/local/bin/nut_exporter \
+    --web.listen-address=:9199
+
+[Install]
+WantedBy=multi-user.target
