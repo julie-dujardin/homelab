@@ -12,8 +12,6 @@ Restart=on-failure
 RestartSec=5s
 ExecStart=/usr/local/bin/node_exporter \
     --web.listen-address=:9100 \
-    --collector.systemd \
-    --collector.processes \
     --collector.cpu.info
 
 [Install]
