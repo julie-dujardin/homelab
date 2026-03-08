@@ -27,4 +27,4 @@ systemctl daemon-reload
 systemctl enable --now <exporter>
 ```
 
-node_exporter can be installed with package manager.
+node_exporter can be installed with package manager, enable exporters with the EnvironmentFile.
