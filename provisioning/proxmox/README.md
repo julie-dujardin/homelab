@@ -11,7 +11,7 @@ Boot menu: F11
 
     c. After first reboot:
 
-        sudo apt install openssh-server git zsh curl wget htop tree \
+        sudo apt install openssh-server git zsh curl wget htop tree rsync \
             prometheus-node-exporter \
             nfs-kernel-server \
             nut usbutils
@@ -24,7 +24,7 @@ Boot menu: F11
 
     b. Install necessary software:
 
-        sudo apt install git htop zsh tree qemu-guest-agent nfs-common
+        sudo apt install git htop zsh tree qemu-guest-agent nfs-common rsync
 
 4. Install & Setup:
     - [oh-my-zsh](https://ohmyz.sh/#install)
