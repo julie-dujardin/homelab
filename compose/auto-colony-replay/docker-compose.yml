@@ -1,0 +1,29 @@
+services:
+  auto-colony-replay:
+    image: ghcr.io/julie-dujardin/auto-colony-replay:latest
+    container_name: auto-colony-replay
+    user: 1000:998
+    # reaps the processes chromium leaves behind
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m  # chromium's profile and the browser driver's files
+    shm_size: 256mb
+    # chromium with up to 3 pages open drawing footage, plus the game's textures
+    mem_limit: 3g
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      - ACCESS_TEAM_DOMAIN=$ACCESS_TEAM_DOMAIN
+      - ACCESS_AUD=$ACCESS_AUD
+      - INGEST_TOKEN=$INGEST_TOKEN
+    volumes:
+      - /var/lib/ilus/auto-colony-replay/data:/data
+      - /var/lib/ilus/auto-colony-replay/rimworld:/game:ro
+    ports:
+      - 8090:8080  # private viewer, tunnelled behind cloudflare access
+      - 8091:8081  # public viewer, tunnelled
+      - 8092:8082  # ingest, LAN only: never tunnel it
+    restart: unless-stopped
