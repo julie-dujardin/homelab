@@ -17,16 +17,16 @@ The public viewer never gets the game's textures, only pictures of the map the s
         sudo install -d -o 1000 -g 998 /var/lib/ilus/auto-colony-replay/data
         sudo install -d -o 1000 -g 998 /var/lib/ilus/auto-colony-replay/rimworld
 
-2. Game files, from the desktop's Steam install (`~/.local/share/Steam/steamapps/common/RimWorld`, or the Flatpak one under `~/.var/app/com.valvesoftware.Steam/`). Only what the server reads: `Version.txt`, `Data/Core/Defs/`, and from `RimWorldLinux_Data/` (`RimWorldWin64_Data/` on Windows) `globalgamemanagers` and `resources.assets*`. Keep a single `*_Data` folder.
+2. Game files, from the desktop's Steam install (`~/.local/share/Steam/steamapps/common/RimWorld`, or with Flatpak `~/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/RimWorld`). Only what the server reads: `Version.txt`, `Data/Core/Defs/`, and from `RimWorldLinux_Data/` (`RimWorldWin64_Data/` on Windows) `globalgamemanagers` and `resources.assets*`. Keep a single `*_Data` folder.
 
         cd ~/.local/share/Steam/steamapps/common/RimWorld
-        rsync -aR --chmod=Da+rx,Fa+r Version.txt Data/Core/Defs \
+        rsync -aR --delete --chmod=Da+rx,Fa+r Version.txt Data/Core/Defs \
             RimWorldLinux_Data/globalgamemanagers RimWorldLinux_Data/resources.assets* \
             <nas>:/var/lib/ilus/auto-colony-replay/rimworld/
 
-    Without them everything works, but the public map is plain colours and there is no footage.
+    `--delete` only clears defs the game no longer has. Without these files everything works, but both maps are plain colours and there is no footage.
 
-3. `cp .env.example .env`, fill in (see Cloudflare below), `INGEST_TOKEN` from `openssl rand -hex 32`.
+3. `cp .env.example .env`, then Cloudflare, below, for `ACCESS_TEAM_DOMAIN` and `ACCESS_AUD` (the server does not start without them), and `INGEST_TOKEN` from `openssl rand -hex 32`.
 
 4. The image is private on GHCR until made public. Either:
     - make it public (it has no game files): the package's page on GitHub > Package settings > Change package visibility > Public
@@ -36,25 +36,25 @@ The public viewer never gets the game's textures, only pictures of the map the s
 
 ## Cloudflare
 
-Tunnel (dashboard-managed, `compose/cloudflared`): Zero Trust > Networks > Tunnels > the tunnel > Public hostnames (Published application routes), add two, each `HTTP` to the NAS's LAN IP like the other stacks:
+Access first, for the private hostname only (menu names as of November 2026):
 
-| Hostname (example) | Service |
+1. Zero Trust > Integrations > Identity providers: add One-time PIN if it's not there.
+2. Zero Trust > Access controls > Applications > Create new application > Self-hosted and private: public hostname `colony-private.ilus.pw`, login method One-time PIN.
+3. Access policy: action Allow, include "Emails ending in" `@<domain>`. Create.
+4. Into `.env`: the application's Application Audience (AUD) Tag (Edit > Additional settings) as `ACCESS_AUD`, and the team domain from Zero Trust > Settings, `<team>.cloudflareaccess.com`, as `ACCESS_TEAM_DOMAIN`.
+
+The server checks Access's token on every private request itself (403 otherwise), as 8090 is open on the LAN too.
+
+Then the tunnel (dashboard-managed, `compose/cloudflared`): Networking > Tunnels > the tunnel > Routes > Add route > Published application, two of them, the service URL to the NAS's LAN IP like the other stacks:
+
+| Hostname (example) | Service URL |
 |---|---|
 | `colony.ilus.pw` | `http://<NAS LAN IP>:8091` |
 | `colony-private.ilus.pw` | `http://<NAS LAN IP>:8090` |
 
-Never add 8092.
+Never add 8092. Like every port here it is open on all the NAS's addresses, so it stays on the LAN only as long as neither the tunnel nor the router forwards it; it takes nothing without the token anyway.
 
-Access, for the private hostname only:
-
-1. Zero Trust > Settings > Authentication > Login methods: add One-time PIN if it's not there.
-2. Zero Trust > Access > Applications > Add an application > Self-hosted: domain `colony-private.ilus.pw`, login method One-time PIN.
-3. Policy: action Allow, include "Emails ending in" `@<domain>`.
-4. Save, then copy from the application's overview the Application Audience (AUD) Tag into `ACCESS_AUD`, and from Zero Trust > Settings > Team name and domain `<team>.cloudflareaccess.com` into `ACCESS_TEAM_DOMAIN`. `docker compose up -d` again.
-
-The server checks Access's token on every private request itself (403 otherwise), as 8090 is open on the LAN too, and refuses to start without these two.
-
-The public hostname has no Access application. Worth a rate limiting rule on it: Security > WAF > Rate limiting rules, hostname equals `colony.ilus.pw`, e.g. 300 requests per 10 seconds per IP, block for 10 seconds. Footage pictures are cached by Cloudflare (immutable), so most requests never reach the NAS.
+The public hostname has no Access application. Worth a rate limiting rule on it: the zone's Security > Security rules > Create rule > Rate limiting rules, hostname equals `colony.ilus.pw`, e.g. 300 requests per 10 seconds per IP, block for 10 seconds, with "Also apply rate limiting to cached assets" off where offered. Footage pictures are cached by Cloudflare (immutable), so most requests never reach the NAS.
 
 ## Sending recordings
 
@@ -69,7 +69,7 @@ Each run is then sent as it's played. Old recordings, from the auto-colony check
 
 ## Running it
 
-- Update: watchtower moves it to `latest`, built from main. By hand: `docker compose pull && docker compose up -d`
+- Update: watchtower moves it to `latest`, built from main once its checks pass. By hand: `docker compose pull && docker compose up -d`
 - Game update: copy the files again, `docker compose restart`. Textures are cached per game version, the old `data/art-cache/<version>/` can be deleted.
 - Logs: `docker logs -f auto-colony-replay`, one line per request (no tokens), also in Loki through promtail.
 - Data, under `/var/lib/ilus/auto-colony-replay/data/`:

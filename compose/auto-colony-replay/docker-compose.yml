@@ -3,12 +3,9 @@ services:
     image: ghcr.io/julie-dujardin/auto-colony-replay:latest
     container_name: auto-colony-replay
     user: 1000:998
-    # reaps the processes chromium leaves behind
-    init: true
     read_only: true
     tmpfs:
-      - /tmp:size=256m  # chromium's profile and the browser driver's files
-    shm_size: 256mb
+      - /tmp:size=256m  # chromium's profile and shared memory (not /dev/shm), the driver's files
     # chromium with up to 3 pages open drawing footage, plus the game's textures
     mem_limit: 3g
     security_opt:
